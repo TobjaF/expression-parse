@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1599895756 source:c:\tbz\403\codeblocks\expr_parse\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdbool.h>
+
+1636190539 source:c:\tbz\tbz\expr_parse\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdbool.h>
+
