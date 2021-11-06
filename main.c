@@ -72,6 +72,7 @@ bool ist_zahl(char);
 struct token token_vorausschauen();
 struct token konsumiere_token();
 bool konsumiere_token_falls(enum token_type);
+bool konsumiere_token_falls_eines(enum token_type, enum token_type);
 int berechne_faktor(int*);
 int berechne_zahl(int*);
 int berechne_produkt(int*);
@@ -170,6 +171,14 @@ bool konsumiere_token_falls (enum token_type type){
     return false;
 }
 
+
+bool konsumiere_token_falls_eines (enum token_type type1, enum token_type type2){
+    if (tokens[tokens_position].type == type1 || tokens[tokens_position].type == type2) {
+        konsumiere_token();
+        return true;
+    }
+    return false;
+}
 int berechne_faktor(int* faktor){
     struct token naechstes = konsumiere_token();
     if (naechstes.type == zahl) {
@@ -178,6 +187,7 @@ int berechne_faktor(int* faktor){
     }
     else if (naechstes.type == klammer_auf){
         int errorcode = berechne_summe(faktor);
+        if (errorcode < 0) return errorcode;
         if (!konsumiere_token_falls(klammer_zu)) return -1;
         return 0;
     }
@@ -186,24 +196,32 @@ int berechne_faktor(int* faktor){
 }
 
 int berechne_produkt(int* produkt){
+    struct token naechstes;
+    naechstes.type = mal;
     *produkt = 1;
     do {
         int faktor;
         int errorcode = berechne_faktor(&faktor);
         if (errorcode < 0 ) return errorcode;
-        *produkt *= faktor;
-    } while (konsumiere_token_falls(mal));
+        if (naechstes.type == mal )*produkt *= faktor;
+        else *produkt /= faktor;
+        naechstes = token_vorausschauen();
+    } while (konsumiere_token_falls_eines(mal,durch));
     return 0;
 }
 
 int berechne_summe(int* summe){
+    struct token naechstes;
+    naechstes.type = plus;
     *summe = 0;
     do {
         int produkt;
         int errorcode = berechne_produkt(&produkt);
         if (errorcode < 0) return errorcode;
-        *summe += produkt;
-    } while (konsumiere_token_falls(plus));
+        if (naechstes.type == plus) *summe += produkt;
+        else *summe -= produkt;
+        naechstes = token_vorausschauen();
+    } while (konsumiere_token_falls_eines(plus,minus));
     return 0;
 }
 
@@ -211,6 +229,7 @@ int berechne_ausdruck(int* resultat){
     int errorcode = berechne_summe(resultat);
     if (errorcode < 0) return errorcode;
     if (!konsumiere_token_falls(ende)) return -3; //Fehler "Zeichen nicht erlaubt"
+    return 0;
 }
 
 void print_error_message (int errorcode, int position) {
