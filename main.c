@@ -1,17 +1,22 @@
 /*
 2020-09-12 TOBJA FRANZ FÜR MODUL 403
+2021-11-06 UPDATE FÜR MODUL 411
 PARSER FÜR MATHEMATISCHE AUSDRÜCKE
 ES KÖNNEN AUSDRÜCKE DER FOLGENDEN EBNF BERECHNET WERDEN
 --------- EBNF --------------
-ziffer = 0|1|2|3|4|5|6|7|8|9
-zahl = ziffer {ziffer}
-faktor = zahl | '(' summe ')'
-produkt = faktor {*faktor}
-summe = produkt {+produkt}
+ziffer    = 0|1|2|3|4|5|6|7|8|9
+zahl      = ziffer {ziffer}
+faktor    = zahl | '(' summe ')'
+produkt   = faktor {*faktor}
+summe     = produkt {+produkt}
+ausdruck  = summe
 -----------------------------
-BEISPIEL: PARSE-BAUM FÜR "34*(2+1)"
+BEISPIEL: "34*(2+1)" IST EIN AUSDRUCK:
 
-                                |START MIT SUMME
+                                |Einstieg in Regel "ausdruck"
+                                |ausdruck
+                                |34*(2+1)
+                                |
                                 |summe
                                34*(2+1)
                                 |
@@ -41,8 +46,6 @@ BEISPIEL: PARSE-BAUM FÜR "34*(2+1)"
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
 
 
@@ -61,7 +64,7 @@ enum token_type {
 struct token {
     enum token_type type;
     int value;
-};//struct token mytoken; mytoken.value = 23
+};
 
 
 //Funktionen deklarieren
@@ -143,7 +146,6 @@ void clear_tokens () {
     }
 }
 
-
 bool ist_zahl(char x){
 return x=='0' || x=='1' || x=='2' || x=='3' || x=='4' || x=='5' || x=='6' || x=='7' || x=='8' || x=='9';
 }
@@ -151,7 +153,6 @@ return x=='0' || x=='1' || x=='2' || x=='3' || x=='4' || x=='5' || x=='6' || x==
 bool ist_leerschlag(char x){
 return x==' ' || x=='\t';
 }
-
 
 struct token token_vorausschauen(){
     return tokens[tokens_position];
@@ -168,8 +169,6 @@ bool konsumiere_token_falls (enum token_type type){
     }
     return false;
 }
-
-
 
 int berechne_faktor(int* faktor){
     struct token naechstes = konsumiere_token();
@@ -213,8 +212,6 @@ int berechne_ausdruck(int* resultat){
     if (errorcode < 0) return errorcode;
     if (!konsumiere_token_falls(ende)) return -3; //Fehler "Zeichen nicht erlaubt"
 }
-
-
 
 void print_error_message (int errorcode, int position) {
     for (int i= 0; i<position+12; i++) printf(" "); //Die Position des Fehlers mit einem '^' markieren
