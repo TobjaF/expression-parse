@@ -60,15 +60,14 @@ enum token_type {
     ende
 };
 
-
 struct token {
     enum token_type type;
     int value;
 };
 
-
 //Funktionen deklarieren
 bool ist_zahl(char);
+bool ist_leerschlag(char);
 struct token token_vorausschauen();
 struct token konsumiere_token();
 bool konsumiere_token_falls(enum token_type);
@@ -77,12 +76,13 @@ int berechne_faktor(int*);
 int berechne_zahl(int*);
 int berechne_produkt(int*);
 int berechne_summe(int*);
+int berechne_ausdruck(int*);
+void tokenize_stdin();
 void print_error_message(int,int);
-
+void clear_tokens();
+void print_tokens();
 
 //globale Variablen initialisieren
-int position=0;
-char input[256];
 int tokens_size=0;
 int tokens_position=0;
 struct token tokens[256];
@@ -148,11 +148,11 @@ void clear_tokens () {
 }
 
 bool ist_zahl(char x){
-return x=='0' || x=='1' || x=='2' || x=='3' || x=='4' || x=='5' || x=='6' || x=='7' || x=='8' || x=='9';
+    return x=='0' || x=='1' || x=='2' || x=='3' || x=='4' || x=='5' || x=='6' || x=='7' || x=='8' || x=='9';
 }
 
 bool ist_leerschlag(char x){
-return x==' ' || x=='\t';
+    return x==' ' || x=='\t';
 }
 
 struct token token_vorausschauen(){
@@ -243,7 +243,7 @@ void print_error_message (int errorcode, int position) {
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     while(true){
         printf("Mathematischen Ausdruck eingeben:\n");
