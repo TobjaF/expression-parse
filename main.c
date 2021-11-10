@@ -131,24 +131,24 @@ void print_function_style_ast_sum_element(struct sum_element* sum_element){
 
 void print_function_style_ast_summe(struct sum* summe){
     struct sum_element* current_sum_element = summe->first_child;
-    if (current_sum_element->next == NULL){
+    if (!(current_sum_element->next)){
         print_function_style_ast_sum_element(current_sum_element);
         return;
     }
     printf("Summe( ");
-    while (current_sum_element != NULL){
+    while (current_sum_element){
         if (current_sum_element->operation == sum_operation_minus){
             printf("%c", current_sum_element->operation);
         }
         print_function_style_ast_sum_element(current_sum_element);
-        if (!current_sum_element->next == NULL) printf(", ");
+        if (current_sum_element->next) printf(", ");
         current_sum_element = current_sum_element->next;
     }
     printf(" )");
 }
 
 void print_function_style_ast_product_element(struct product_element* product_element){
-  if (product_element->value->value_sum == NULL) {
+  if (!(product_element->value->value_sum)) {
             int value = product_element->value->value_int;
             printf("%d", value);
         } else {
@@ -158,17 +158,17 @@ void print_function_style_ast_product_element(struct product_element* product_el
 
 void print_function_style_ast_produkt(struct product* product){
     struct product_element* current_product_element = product->first_child;
-    if (current_product_element->next == NULL){
+    if (!(current_product_element->next)){
         print_function_style_ast_product_element(current_product_element);
         return;
     }
     printf("Produkt( ");
-    while (current_product_element != NULL){
+    while (current_product_element){
         if(current_product_element->operation == product_operation_divide){
             printf("%c", current_product_element->operation);
         }
         print_function_style_ast_product_element(current_product_element);
-        if (!current_product_element->next == NULL) printf(", ");
+        if (current_product_element->next) printf(", ");
         current_product_element = current_product_element->next;
     }
     printf(" )");
@@ -185,13 +185,13 @@ void print_html_style_ast_ausdruck(struct ausdruck* ausdruck){
 
 void print_html_style_ast_summe(struct sum* sum){
     struct sum_element* current_sum_element = sum->first_child;
-    if (current_sum_element->next == NULL){
+    if (!(current_sum_element->next)){
         print_function_style_ast_sum_element(current_sum_element);
         return;
     }
     print_indent_stack(); printf("<div class=\"summe\">\n");
     push_indent_stack();
-    while (current_sum_element != NULL){
+    while (current_sum_element){
         if (current_sum_element->operation == sum_operation_minus){
             print_indent_stack(); printf("<div class=\"summand-minus\">\n");
         } else {print_indent_stack(); printf("<div class=\"summand-plus\">\n");}
@@ -207,13 +207,13 @@ void print_html_style_ast_summe(struct sum* sum){
 
 void print_html_style_ast_produkt(struct product* product){
     struct product_element* current_product_element = product->first_child;
-    if (current_product_element->next == NULL){
+    if (!(current_product_element->next)){
         print_html_style_ast_product_element(current_product_element);
         return;
     }
     print_indent_stack(); printf("<div class=\"produkt\">\n");
     push_indent_stack();
-    while (current_product_element != NULL){
+    while (current_product_element){
         if (current_product_element->operation == product_operation_multiply){
             print_indent_stack(); printf("<div class=\"faktor-multiplikation\">\n");
         } else {print_indent_stack(); printf("<div class=\"faktor-division\">\n");}
@@ -232,7 +232,7 @@ void print_html_style_ast_sum_element(struct sum_element* sum_element){
 }
 
 void print_html_style_ast_product_element(struct product_element* product_element){
-     if (product_element->value->value_sum == NULL) {
+     if (!(product_element->value->value_sum)) {
         int value = product_element->value->value_int;
         print_indent_stack();printf("%d\n", value);
     } else {
@@ -243,7 +243,7 @@ void print_html_style_ast_product_element(struct product_element* product_elemen
 
 int eval_ast_faktor(struct product_element_value* product_element_value){
     int result;
-    if (product_element_value->value_sum == NULL) result = product_element_value->value_int;
+    if (!(product_element_value->value_sum)) result = product_element_value->value_int;
     else result = eval_ast_summe(product_element_value->value_sum);
     return result;
 }
@@ -252,7 +252,7 @@ int eval_ast_faktor(struct product_element_value* product_element_value){
 int eval_ast_produkt(struct product* product){
     int result = 1;
     struct product_element* product_element_current = product->first_child;
-    while (product_element_current != NULL){
+    while (product_element_current){
         int current_element_value = eval_ast_faktor(product_element_current->value);
         if (product_element_current->operation == product_operation_multiply){
             result *= current_element_value;
@@ -265,7 +265,7 @@ int eval_ast_produkt(struct product* product){
 int eval_ast_summe(struct sum* summe){
     int result = 0;
     struct sum_element* sum_element_current = summe->first_child;
-    while (sum_element_current != NULL){
+    while (sum_element_current){
         int current_element_value = eval_ast_produkt(sum_element_current->value);
         if (sum_element_current->operation == sum_operation_plus){
              result += current_element_value;
@@ -373,17 +373,17 @@ int berechne_produkt(int* produkt){
 }
 
 int lese_produkt(struct product* produkt){
-    struct product_element* product_element_current = NULL; // NULL; //mit malloc allozieren.
+    struct product_element* product_element_current = NULL;
     struct token naechstes;
     naechstes.type = token_type_mal;
     do {
-        struct product_element* new_product_elem = calloc(1,sizeof(struct product_element)); //NULL; //new_product_element(); //allenfalls calloc verwenden, damit alles auf NULL gesetzt ist (keine wild pointers)
+        struct product_element* new_product_elem = calloc(1,sizeof(struct product_element));
         if (naechstes.type == token_type_mal) new_product_elem->operation = product_operation_multiply;
         else new_product_elem->operation = product_operation_divide;
         new_product_elem->value = (struct product_element_value*) calloc(1,sizeof(struct product_element_value));
         int errorcode = lese_faktor(new_product_elem->value);
         if (errorcode < 0 ) return errorcode;
-        if (product_element_current == NULL) produkt->first_child = new_product_elem;
+        if (!product_element_current) produkt->first_child = new_product_elem;
         else product_element_current->next = new_product_elem;
         product_element_current = new_product_elem;
         naechstes = token_vorausschauen();
@@ -417,7 +417,7 @@ int lese_summe(struct sum* summe){
         new_sum_elem->value = (struct product*) calloc(1,sizeof(struct product));
         int errorcode = lese_produkt(new_sum_elem->value);
         if (errorcode < 0) return errorcode;
-        if (sum_element_current == NULL) summe->first_child = new_sum_elem;
+        if (!sum_element_current) summe->first_child = new_sum_elem;
         else sum_element_current->next = new_sum_elem;
         sum_element_current = new_sum_elem;
         naechstes = token_vorausschauen();
