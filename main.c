@@ -186,7 +186,7 @@ void print_html_style_ast_ausdruck(struct ausdruck* ausdruck){
 void print_html_style_ast_summe(struct sum* sum){
     struct sum_element* current_sum_element = sum->first_child;
     if (!(current_sum_element->next)){
-        print_function_style_ast_sum_element(current_sum_element);
+        print_html_style_ast_sum_element(current_sum_element);
         return;
     }
     print_indent_stack(); printf("<div class=\"summe\">\n");
