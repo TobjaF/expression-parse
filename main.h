@@ -82,8 +82,19 @@ void tokenize_stdin();
 void print_error_message(int,int);
 void clear_tokens();
 void print_tokens();
-void print_ast_ausdruck(struct ausdruck*);
-void print_ast_summe(struct sum*);
-void print_ast_produkt(struct product*);
+void print_function_style_ast_ausdruck(struct ausdruck*);
+void print_function_style_ast_summe(struct sum*);
+void print_function_style_ast_produkt(struct product*);
+void print_function_style_ast_sum_element(struct sum_element*);
+void print_function_style_ast_product_element(struct product_element*);
+void print_html_style_ast_ausdruck(struct ausdruck*);
+void print_html_style_ast_summe(struct sum*);
+void print_html_style_ast_produkt(struct product*);
+void print_html_style_ast_sum_element(struct sum_element*);
+void print_html_style_ast_product_element(struct product_element*);
+int eval_ast_produkt(struct product*);
+int eval_ast_summe(struct sum*);
+int eval_ast_ausdruck(struct ausdruck*);
+
 
 #endif // MAIN_H_INCLUDED

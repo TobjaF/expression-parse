@@ -50,6 +50,26 @@ BEISPIEL: "34*(2+1)" IST EIN AUSDRUCK:
 int tokens_size=0;
 int tokens_position=0;
 struct token tokens[256];
+int indent_stack=0;
+int indent_amount=4;
+char indent_char=' ';
+
+void push_indent_stack(){
+++indent_stack;
+}
+
+void pop_indent_stack(){
+--indent_stack;
+}
+
+int get_indent_stack(){
+return indent_stack;
+}
+
+void print_indent_stack(){
+    for(int i=0; i<indent_amount*indent_stack;i++) printf("%c", indent_char);
+}
+
 
 void push_token(enum token_type type, int value){
     struct token new_token;
@@ -94,60 +114,170 @@ void tokenize_stdin () {
 }
 
 void print_tokens(){
-    printf("tokenized: [ ");
     for (int i = 0; i<tokens_size-1; i++){
         if (tokens[i].type == token_type_zahl) printf("%d", tokens[i].value);
         else printf("%c", tokens[i].value);
     }
-    printf(" ]\n\n");
 }
 
-void print_ast_ausdruck(struct ausdruck* ausdruck){
-    print_ast_summe(ausdruck->summe);
+void print_function_style_ast_ausdruck(struct ausdruck* ausdruck){
+    print_function_style_ast_summe(ausdruck->summe);
     printf("\n\n");
 }
 
-void print_ast_sum_element(struct sum_element* sum_element){
-    print_ast_produkt(sum_element->value);
+void print_function_style_ast_sum_element(struct sum_element* sum_element){
+    print_function_style_ast_produkt(sum_element->value);
 }
 
-void print_ast_summe(struct sum* summe){
+void print_function_style_ast_summe(struct sum* summe){
     struct sum_element* current_sum_element = summe->first_child;
     if (current_sum_element->next == NULL){
-        print_ast_sum_element(current_sum_element);
+        print_function_style_ast_sum_element(current_sum_element);
         return;
     }
     printf("Summe( ");
     while (current_sum_element != NULL){
-        printf("%c", current_sum_element->operation);
-        print_ast_sum_element(current_sum_element);
+        if (current_sum_element->operation == sum_operation_minus){
+            printf("%c", current_sum_element->operation);
+        }
+        print_function_style_ast_sum_element(current_sum_element);
+        if (!current_sum_element->next == NULL) printf(", ");
         current_sum_element = current_sum_element->next;
     }
     printf(" )");
 }
 
-void print_ast_product_element(struct product_element* product_element){
+void print_function_style_ast_product_element(struct product_element* product_element){
   if (product_element->value->value_sum == NULL) {
             int value = product_element->value->value_int;
             printf("%d", value);
         } else {
-            print_ast_summe(product_element->value->value_sum);
+            print_function_style_ast_summe(product_element->value->value_sum);
         }
 }
 
-void print_ast_produkt(struct product* product){
+void print_function_style_ast_produkt(struct product* product){
     struct product_element* current_product_element = product->first_child;
     if (current_product_element->next == NULL){
-        print_ast_product_element(current_product_element);
+        print_function_style_ast_product_element(current_product_element);
         return;
     }
     printf("Produkt( ");
     while (current_product_element != NULL){
-        printf("%c", current_product_element->operation);
-        print_ast_product_element(current_product_element);
+        if(current_product_element->operation == product_operation_divide){
+            printf("%c", current_product_element->operation);
+        }
+        print_function_style_ast_product_element(current_product_element);
+        if (!current_product_element->next == NULL) printf(", ");
         current_product_element = current_product_element->next;
     }
     printf(" )");
+}
+
+
+void print_html_style_ast_ausdruck(struct ausdruck* ausdruck){
+    print_indent_stack(); printf("<div class=\"ausdruck\">\n");
+    push_indent_stack();
+    print_html_style_ast_summe(ausdruck->summe);
+    pop_indent_stack();
+    print_indent_stack(); printf("</div>");
+}
+
+void print_html_style_ast_summe(struct sum* sum){
+    struct sum_element* current_sum_element = sum->first_child;
+    if (current_sum_element->next == NULL){
+        print_function_style_ast_sum_element(current_sum_element);
+        return;
+    }
+    print_indent_stack(); printf("<div class=\"summe\">\n");
+    push_indent_stack();
+    while (current_sum_element != NULL){
+        if (current_sum_element->operation == sum_operation_minus){
+            print_indent_stack(); printf("<div class=\"summand-minus\">\n");
+        } else {print_indent_stack(); printf("<div class=\"summand-plus\">\n");}
+        push_indent_stack();
+        print_html_style_ast_sum_element(current_sum_element);
+        pop_indent_stack();
+        print_indent_stack(); printf("</div>\n");
+        current_sum_element = current_sum_element->next;
+    }
+    pop_indent_stack();
+    print_indent_stack(); printf("</div>\n");
+}
+
+void print_html_style_ast_produkt(struct product* product){
+    struct product_element* current_product_element = product->first_child;
+    if (current_product_element->next == NULL){
+        print_html_style_ast_product_element(current_product_element);
+        return;
+    }
+    print_indent_stack(); printf("<div class=\"produkt\">\n");
+    push_indent_stack();
+    while (current_product_element != NULL){
+        if (current_product_element->operation == product_operation_multiply){
+            print_indent_stack(); printf("<div class=\"faktor-multiplikation\">\n");
+        } else {print_indent_stack(); printf("<div class=\"faktor-division\">\n");}
+        push_indent_stack();
+        print_html_style_ast_product_element(current_product_element);
+        pop_indent_stack();
+        print_indent_stack(); printf("</div>\n");
+        current_product_element = current_product_element->next;
+    }
+    pop_indent_stack();
+    print_indent_stack(); printf("</div>\n");
+}
+
+void print_html_style_ast_sum_element(struct sum_element* sum_element){
+    print_html_style_ast_produkt(sum_element->value);
+}
+
+void print_html_style_ast_product_element(struct product_element* product_element){
+     if (product_element->value->value_sum == NULL) {
+        int value = product_element->value->value_int;
+        print_indent_stack();printf("%d\n", value);
+    } else {
+        print_html_style_ast_summe(product_element->value->value_sum);
+    }
+}
+
+
+int eval_ast_faktor(struct product_element_value* product_element_value){
+    int result;
+    if (product_element_value->value_sum == NULL) result = product_element_value->value_int;
+    else result = eval_ast_summe(product_element_value->value_sum);
+    return result;
+}
+
+
+int eval_ast_produkt(struct product* product){
+    int result = 1;
+    struct product_element* product_element_current = product->first_child;
+    while (product_element_current != NULL){
+        int current_element_value = eval_ast_faktor(product_element_current->value);
+        if (product_element_current->operation == product_operation_multiply){
+            result *= current_element_value;
+        } else result /= current_element_value;
+        product_element_current = product_element_current->next;
+    }
+    return result;
+}
+
+int eval_ast_summe(struct sum* summe){
+    int result = 0;
+    struct sum_element* sum_element_current = summe->first_child;
+    while (sum_element_current != NULL){
+        int current_element_value = eval_ast_produkt(sum_element_current->value);
+        if (sum_element_current->operation == sum_operation_plus){
+             result += current_element_value;
+        } else result -= current_element_value;
+        sum_element_current = sum_element_current->next;
+    }
+    return result;
+}
+
+int eval_ast_ausdruck(struct ausdruck* ausdruck){
+    int result = eval_ast_summe(ausdruck->summe);
+    return result;
 }
 
 void clear_tokens () {
@@ -222,8 +352,9 @@ int lese_faktor(struct product_element_value* value){
         value->value_sum = summe;
         return 0;
     }
-    else if (naechstes.type == token_type_ende) return -2; //Fehler "Hier muss ein Zeichen stehen"
-    else return -3; //Fehler "Zeichen nicht erlaubt"
+    else return -4; //Fehler "Zahl oder öffnende Klammer erwartet
+    //else if (naechstes.type == token_type_ende) return -2; //Fehler "Hier muss ein Zeichen stehen"
+    //else return -3; //Fehler "Zeichen nicht erlaubt"
 }
 
 int berechne_produkt(int* produkt){
@@ -310,12 +441,13 @@ int lese_ausdruck(struct ausdruck* ausdruck){
 }
 
 void print_error_message (int errorcode, int position) {
-    for (int i= 0; i<position+12; i++) printf(" "); //Die Position des Fehlers mit einem '^' markieren
+    for (int i= 0; i<position+3; i++) printf(" "); //Die Position des Fehlers mit einem '^' markieren
     printf("^\n");
     switch(errorcode){
         case -1: printf("Fehler an Position %d: Abschliessende Klammer ')' erwartet\n\n", position); break;
         case -2: printf("Fehler an Position %d: Hier muss ein Zeichen stehen \n\n", position); break;
         case -3: printf("Fehler an Position %d: Zeichen hier nicht erlaubt\n\n", position); break;
+        case -4: printf("Fehler an Position %d: Zahl oder oeffnende Klammer '(' erwartet\n\n", position); break;
         default: printf("Fehler an Position %d: \n\n", position); break;
     }
 }
@@ -324,15 +456,25 @@ int main(int argc, char *argv[])
 {
     //system("\"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\"");
     while(true){
-        printf("Mathematischen Ausdruck eingeben:\n");
+        printf("Mathematischen Ausdruck eingeben, z.B. \'3+(2-10)*4\' \n");
         tokenize_stdin();
+        printf("\n\nEingabe \n--> ");
         print_tokens();
+        printf("\n");
         //int resultat;
         struct ausdruck* ausdruck = calloc(1,sizeof(struct ausdruck));//NULL;//new_ausdruck();
         int errorcode = lese_ausdruck(ausdruck);
         if (errorcode < 0) print_error_message(errorcode, tokens_position);
-        else print_ast_ausdruck(ausdruck);
-        //else printf("%d \n\n", resultat);
+        else {
+            printf("\n\n");
+            int result = eval_ast_ausdruck(ausdruck);
+            printf("Eingabe in Function-Style \n--> ");
+            print_function_style_ast_ausdruck(ausdruck);
+            printf("\n\nEingabe als HTML-Baum \n-->\n");
+            print_html_style_ast_ausdruck(ausdruck);
+            printf("\n\nResultat \n--> %d \n\n", result);
+        }
+        printf("\n\n\n");
         clear_tokens();
     }
     return 0;
