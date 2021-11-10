@@ -210,13 +210,12 @@ int berechne_faktor(int* faktor){
 int lese_faktor(struct product_element_value* value){
     struct token naechstes = konsumiere_token();
     if (naechstes.type == token_type_zahl) {
-        value->value_sum = NULL;
         value->value_int = naechstes.value;
         return 0;
     }
 
     else if (naechstes.type == token_type_klammer_auf){
-        struct sum* summe = (struct sum*) malloc(sizeof(struct sum)); //new_sum();
+        struct sum* summe = (struct sum*) calloc(1,sizeof(struct sum)); //new_sum();
         int errorcode = lese_summe(summe);
         if (errorcode < 0) return errorcode;
         if (!konsumiere_token_falls(token_type_klammer_zu)) return -1;
@@ -247,10 +246,10 @@ int lese_produkt(struct product* produkt){
     struct token naechstes;
     naechstes.type = token_type_mal;
     do {
-        struct product_element* new_product_elem = malloc(sizeof(struct product_element)); //NULL; //new_product_element(); //allenfalls calloc verwenden, damit alles auf NULL gesetzt ist (keine wild pointers)
+        struct product_element* new_product_elem = calloc(1,sizeof(struct product_element)); //NULL; //new_product_element(); //allenfalls calloc verwenden, damit alles auf NULL gesetzt ist (keine wild pointers)
         if (naechstes.type == token_type_mal) new_product_elem->operation = product_operation_multiply;
         else new_product_elem->operation = product_operation_divide;
-        new_product_elem->value = (struct product_element_value*) malloc(sizeof(struct product_element_value));
+        new_product_elem->value = (struct product_element_value*) calloc(1,sizeof(struct product_element_value));
         int errorcode = lese_faktor(new_product_elem->value);
         if (errorcode < 0 ) return errorcode;
         if (product_element_current == NULL) produkt->first_child = new_product_elem;
@@ -258,7 +257,6 @@ int lese_produkt(struct product* produkt){
         product_element_current = new_product_elem;
         naechstes = token_vorausschauen();
     } while (konsumiere_token_falls_eines(token_type_mal,token_type_durch));
-    product_element_current->next=NULL;
     return 0;
 }
 
@@ -282,10 +280,10 @@ int lese_summe(struct sum* summe){
     struct token naechstes;
     naechstes.type = token_type_plus;
     do {
-        struct sum_element* new_sum_elem = (struct sum_element*) malloc(sizeof(struct sum_element)); //NULL; //new_sum_element();
+        struct sum_element* new_sum_elem = (struct sum_element*) calloc(1,sizeof(struct sum_element));
         if (naechstes.type == token_type_plus) new_sum_elem->operation = sum_operation_plus;
         else new_sum_elem->operation = sum_operation_minus;
-        new_sum_elem->value = (struct product*) malloc(sizeof(struct product));
+        new_sum_elem->value = (struct product*) calloc(1,sizeof(struct product));
         int errorcode = lese_produkt(new_sum_elem->value);
         if (errorcode < 0) return errorcode;
         if (sum_element_current == NULL) summe->first_child = new_sum_elem;
@@ -293,7 +291,6 @@ int lese_summe(struct sum* summe){
         sum_element_current = new_sum_elem;
         naechstes = token_vorausschauen();
     } while (konsumiere_token_falls_eines(token_type_plus,token_type_minus));
-    sum_element_current->next = NULL;
     return 0;
 };
 
@@ -305,7 +302,7 @@ int berechne_ausdruck(int* resultat){
 }
 
 int lese_ausdruck(struct ausdruck* ausdruck){
-    ausdruck->summe = malloc(sizeof(struct sum));
+    ausdruck->summe = calloc(1,sizeof(struct sum));
     int errorcode = lese_summe(ausdruck->summe);
     if (errorcode < 0) return errorcode;
     if (!konsumiere_token_falls(token_type_ende)) return -3; //Fehler "Zeichen nicht erlaubt"
@@ -331,7 +328,7 @@ int main(int argc, char *argv[])
         tokenize_stdin();
         print_tokens();
         //int resultat;
-        struct ausdruck* ausdruck = malloc(sizeof(struct ausdruck));//NULL;//new_ausdruck();
+        struct ausdruck* ausdruck = calloc(1,sizeof(struct ausdruck));//NULL;//new_ausdruck();
         int errorcode = lese_ausdruck(ausdruck);
         if (errorcode < 0) print_error_message(errorcode, tokens_position);
         else print_ast_ausdruck(ausdruck);
