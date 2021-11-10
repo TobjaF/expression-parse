@@ -44,114 +44,7 @@ BEISPIEL: "34*(2+1)" IST EIN AUSDRUCK:
                                       2         1
 
 */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
-
-enum token_type {
-    token_type_zahl,
-    token_type_klammer_auf,
-    token_type_klammer_zu,
-    token_type_plus,
-    token_type_minus,
-    token_type_mal,
-    token_type_durch,
-    token_type_ende
-};
-
-struct token {
-    enum token_type type;
-    int value;
-};
-
-//AST-ELEMENTS
-enum sum_operation{
-    sum_operation_plus,
-    sum_operation_minus
-};
-
-enum product_operation{
-    product_operation_multiply,
-    product_operation_divide,
-};
-
-struct sum_element {
-    enum sum_operation operation;
-    struct product* value;
-    struct sum_element* next;
-};
-
-struct product_element_value{
-    struct sum* value_sum;
-    int value_int;
-};
-
-struct product_element{
-    enum product_operation operation;
-    struct product_element* next;
-    struct product_element_value* value;
-};
-
-struct sum {
-    struct sum_element* first_child;
-};
-
-
-struct product{
-    struct product_element* first_child;
-};
-
-struct ausdruck{
-    struct sum* summe;
-};
-
-struct product_element* new_product_element(){
-    struct product_element new_product_element = {operation: product_operation_multiply, next: NULL, value: NULL};
-    return &new_product_element;
-};
-
-struct sum_element* new_sum_element(){
-    struct sum_element new_sum_element = {operation: sum_operation_plus, value: NULL, next: NULL};
-    return &new_sum_element;
-};
-
-struct product_element_value* new_product_element_value(){
-    struct product_element_value new_product_element_value = {value_sum: NULL, value_int: 0};
-    return &new_product_element_value;
-};
-
-struct sum* new_sum(){
-    struct sum new_sum = {first_child: NULL};
-    return &new_sum;
-};
-
-struct ausdruck* new_ausdruck(){
-   struct ausdruck new_ausdruck = {summe: NULL} ;
-   return &new_ausdruck;
-};
-
-
-//Funktionen deklarieren
-bool ist_zahl(char);
-bool ist_leerschlag(char);
-struct token token_vorausschauen();
-struct token konsumiere_token();
-bool konsumiere_token_falls(enum token_type);
-bool konsumiere_token_falls_eines(enum token_type, enum token_type);
-int berechne_faktor(int*);
-int berechne_zahl(int*);
-int berechne_produkt(int*);
-int berechne_summe(int*);
-int lese_summe(struct sum*);
-int lese_produkt(struct product*);
-int lese_faktor(struct product_element_value*);
-int berechne_ausdruck(int*);
-void tokenize_stdin();
-void print_error_message(int,int);
-void clear_tokens();
-void print_tokens();
+#include "main.h"
 
 //globale Variablen initialisieren
 int tokens_size=0;
@@ -209,6 +102,54 @@ void print_tokens(){
     printf(" ]\n\n");
 }
 
+void print_ast_ausdruck(struct ausdruck* ausdruck){
+    print_ast_summe(ausdruck->summe);
+    printf("\n\n");
+}
+
+void print_ast_sum_element(struct sum_element* sum_element){
+    print_ast_produkt(sum_element->value);
+}
+
+void print_ast_summe(struct sum* summe){
+    struct sum_element* current_sum_element = summe->first_child;
+    if (current_sum_element->next == NULL){
+        print_ast_sum_element(current_sum_element);
+        return;
+    }
+    printf("Summe( ");
+    while (current_sum_element != NULL){
+        printf("%c", current_sum_element->operation);
+        print_ast_sum_element(current_sum_element);
+        current_sum_element = current_sum_element->next;
+    }
+    printf(" )");
+}
+
+void print_ast_product_element(struct product_element* product_element){
+  if (product_element->value->value_sum == NULL) {
+            int value = product_element->value->value_int;
+            printf("%d", value);
+        } else {
+            print_ast_summe(product_element->value->value_sum);
+        }
+}
+
+void print_ast_produkt(struct product* product){
+    struct product_element* current_product_element = product->first_child;
+    if (current_product_element->next == NULL){
+        print_ast_product_element(current_product_element);
+        return;
+    }
+    printf("Produkt( ");
+    while (current_product_element != NULL){
+        printf("%c", current_product_element->operation);
+        print_ast_product_element(current_product_element);
+        current_product_element = current_product_element->next;
+    }
+    printf(" )");
+}
+
 void clear_tokens () {
     tokens_position = 0;
     tokens_size = 0;
@@ -242,7 +183,6 @@ bool konsumiere_token_falls (enum token_type type){
     return false;
 }
 
-
 bool konsumiere_token_falls_eines (enum token_type type1, enum token_type type2){
     if (tokens[tokens_position].type == type1 || tokens[tokens_position].type == type2) {
         konsumiere_token();
@@ -250,6 +190,7 @@ bool konsumiere_token_falls_eines (enum token_type type1, enum token_type type2)
     }
     return false;
 }
+
 int berechne_faktor(int* faktor){
     struct token naechstes = konsumiere_token();
     if (naechstes.type == token_type_zahl) {
@@ -268,13 +209,14 @@ int berechne_faktor(int* faktor){
 
 int lese_faktor(struct product_element_value* value){
     struct token naechstes = konsumiere_token();
-    value = malloc(sizeof value);
     if (naechstes.type == token_type_zahl) {
+        value->value_sum = NULL;
         value->value_int = naechstes.value;
         return 0;
     }
+
     else if (naechstes.type == token_type_klammer_auf){
-        struct sum* summe = malloc(sizeof summe); //new_sum();
+        struct sum* summe = (struct sum*) malloc(sizeof(struct sum)); //new_sum();
         int errorcode = lese_summe(summe);
         if (errorcode < 0) return errorcode;
         if (!konsumiere_token_falls(token_type_klammer_zu)) return -1;
@@ -283,7 +225,6 @@ int lese_faktor(struct product_element_value* value){
     }
     else if (naechstes.type == token_type_ende) return -2; //Fehler "Hier muss ein Zeichen stehen"
     else return -3; //Fehler "Zeichen nicht erlaubt"
-
 }
 
 int berechne_produkt(int* produkt){
@@ -302,13 +243,14 @@ int berechne_produkt(int* produkt){
 }
 
 int lese_produkt(struct product* produkt){
-    struct product_element* product_element_current = malloc(sizeof product_element_current);// NULL; //mit malloc allozieren.
+    struct product_element* product_element_current = NULL; // NULL; //mit malloc allozieren.
     struct token naechstes;
     naechstes.type = token_type_mal;
     do {
-        struct product_element* new_product_elem = malloc(sizeof new_product_elem); //NULL; //new_product_element();
+        struct product_element* new_product_elem = malloc(sizeof(struct product_element)); //NULL; //new_product_element(); //allenfalls calloc verwenden, damit alles auf NULL gesetzt ist (keine wild pointers)
         if (naechstes.type == token_type_mal) new_product_elem->operation = product_operation_multiply;
         else new_product_elem->operation = product_operation_divide;
+        new_product_elem->value = (struct product_element_value*) malloc(sizeof(struct product_element_value));
         int errorcode = lese_faktor(new_product_elem->value);
         if (errorcode < 0 ) return errorcode;
         if (product_element_current == NULL) produkt->first_child = new_product_elem;
@@ -316,6 +258,7 @@ int lese_produkt(struct product* produkt){
         product_element_current = new_product_elem;
         naechstes = token_vorausschauen();
     } while (konsumiere_token_falls_eines(token_type_mal,token_type_durch));
+    product_element_current->next=NULL;
     return 0;
 }
 
@@ -339,9 +282,10 @@ int lese_summe(struct sum* summe){
     struct token naechstes;
     naechstes.type = token_type_plus;
     do {
-        struct sum_element* new_sum_elem = malloc(sizeof new_sum_elem); //NULL; //new_sum_element();
+        struct sum_element* new_sum_elem = (struct sum_element*) malloc(sizeof(struct sum_element)); //NULL; //new_sum_element();
         if (naechstes.type == token_type_plus) new_sum_elem->operation = sum_operation_plus;
         else new_sum_elem->operation = sum_operation_minus;
+        new_sum_elem->value = (struct product*) malloc(sizeof(struct product));
         int errorcode = lese_produkt(new_sum_elem->value);
         if (errorcode < 0) return errorcode;
         if (sum_element_current == NULL) summe->first_child = new_sum_elem;
@@ -349,6 +293,7 @@ int lese_summe(struct sum* summe){
         sum_element_current = new_sum_elem;
         naechstes = token_vorausschauen();
     } while (konsumiere_token_falls_eines(token_type_plus,token_type_minus));
+    sum_element_current->next = NULL;
     return 0;
 };
 
@@ -360,6 +305,7 @@ int berechne_ausdruck(int* resultat){
 }
 
 int lese_ausdruck(struct ausdruck* ausdruck){
+    ausdruck->summe = malloc(sizeof(struct sum));
     int errorcode = lese_summe(ausdruck->summe);
     if (errorcode < 0) return errorcode;
     if (!konsumiere_token_falls(token_type_ende)) return -3; //Fehler "Zeichen nicht erlaubt"
@@ -379,14 +325,16 @@ void print_error_message (int errorcode, int position) {
 
 int main(int argc, char *argv[])
 {
+    //system("\"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe\"");
     while(true){
         printf("Mathematischen Ausdruck eingeben:\n");
         tokenize_stdin();
         print_tokens();
         //int resultat;
-        struct ausdruck* ausdruck = malloc(sizeof ausdruck);//NULL;//new_ausdruck();
+        struct ausdruck* ausdruck = malloc(sizeof(struct ausdruck));//NULL;//new_ausdruck();
         int errorcode = lese_ausdruck(ausdruck);
         if (errorcode < 0) print_error_message(errorcode, tokens_position);
+        else print_ast_ausdruck(ausdruck);
         //else printf("%d \n\n", resultat);
         clear_tokens();
     }

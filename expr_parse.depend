@@ -11,7 +11,10 @@
 	<string.h>
 	<stdbool.h>
 
-1636241721 source:c:\tbz\411\expression-parse\main.c
+1636545339 source:c:\tbz\411\expression-parse\main.c
+	"main.h"
+
+1636545375 c:\tbz\411\expression-parse\main.h
 	<stdio.h>
 	<stdlib.h>
 	<stdbool.h>
