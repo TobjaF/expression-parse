@@ -95,6 +95,12 @@ void print_html_style_ast_product_element(struct product_element*);
 int eval_ast_produkt(struct product*);
 int eval_ast_summe(struct sum*);
 int eval_ast_ausdruck(struct ausdruck*);
+void release_memory_ast_product(struct product*);
+void release_memory_ast_sum(struct sum*);
+void release_memory_ast_ausdruck(struct ausdruck*);
+void release_memory_ast_sum_element(struct sum_element*);
+void release_memory_ast_product_element(struct product_element*);
+void release_memory_ast_product_element_value(struct product_element_value*);
 
 
 #endif // MAIN_H_INCLUDED

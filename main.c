@@ -240,6 +240,50 @@ void print_html_style_ast_product_element(struct product_element* product_elemen
     }
 }
 
+void release_memory_ast_product_element_value(struct product_element_value* value){
+    if(value->value_sum){
+        release_memory_ast_sum(value->value_sum);
+    }
+    free(value);
+}
+
+void release_memory_ast_product_element(struct product_element* product_element){
+    release_memory_ast_product_element_value(product_element->value);
+    free(product_element);
+}
+
+void release_memory_ast_product(struct product* product){
+    struct product_element* current_product_element = product->first_child;
+    struct product_element* next_product_element;
+    while(current_product_element){
+        next_product_element = current_product_element->next;
+        release_memory_ast_product_element(current_product_element);
+        current_product_element = next_product_element;
+    }
+    free(product);
+}
+
+void release_memory_ast_sum_element(struct sum_element* sum_element){
+    release_memory_ast_product(sum_element->value);
+    free(sum_element);
+}
+
+void release_memory_ast_sum(struct sum* sum){
+    struct sum_element* current_sum_element = sum->first_child;
+    struct sum_element* next_sum_element;
+    while(current_sum_element){
+        next_sum_element = current_sum_element->next;
+        release_memory_ast_sum_element(current_sum_element);
+        current_sum_element = next_sum_element;
+    }
+    free(sum);
+}
+
+void release_memory_ast_ausdruck(struct ausdruck* ausdruck){
+    release_memory_ast_sum(ausdruck->summe);
+    free(ausdruck);
+}
+
 
 int eval_ast_faktor(struct product_element_value* product_element_value){
     int result;
@@ -474,6 +518,7 @@ int main(int argc, char *argv[])
             print_html_style_ast_ausdruck(ausdruck);
             printf("\n\nResultat \n--> %d \n\n", result);
         }
+        release_memory_ast_ausdruck(ausdruck);
         printf("\n\n\n");
         clear_tokens();
     }
