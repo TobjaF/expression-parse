@@ -1,8 +1,8 @@
 /*
-2020-09-12 TOBJA FRANZ FÜR MODUL 403
-2021-11-06 UPDATE FÜR MODUL 411
-PARSER FÜR MATHEMATISCHE AUSDRÜCKE
-ES KÖNNEN AUSDRÜCKE DER FOLGENDEN EBNF BERECHNET WERDEN
+2020-09-12 TOBJA FRANZ FÃœR MODUL 403
+2021-11-06 UPDATE FÃœR MODUL 411
+PARSER FÃœR MATHEMATISCHE AUSDRÃœCKE
+ES KÃ–NNEN AUSDRÃœCKE DER FOLGENDEN EBNF BERECHNET WERDEN
 --------- EBNF --------------
 ziffer    = 0|1|2|3|4|5|6|7|8|9
 zahl      = ziffer {ziffer}
@@ -82,8 +82,8 @@ void tokenize_stdin () {
     int c = fgetc(stdin);
     while (c!=EOF && c !='\n') {
         switch(c) {
-            case ' ': {c = fgetc(stdin); break;} //Leerschlag überspringen
-            case '\t': {c = fgetc(stdin); break;} // Tab überspringen
+            case ' ': {c = fgetc(stdin); break;} //Leerschlag Ã¼berspringen
+            case '\t': {c = fgetc(stdin); break;} // Tab Ã¼berspringen
             case '+': {push_token(token_type_plus, c);  c = fgetc(stdin); break;}
             case '-': {push_token(token_type_minus, c); c = fgetc(stdin); break;}
             case '/': {push_token(token_type_durch, c); c = fgetc(stdin); break;}
@@ -396,7 +396,7 @@ int lese_faktor(struct product_element_value* value){
         value->value_sum = summe;
         return 0;
     }
-    else return -4; //Fehler "Zahl oder öffnende Klammer erwartet
+    else return -4; //Fehler "Zahl oder Ã¶ffnende Klammer erwartet
     //else if (naechstes.type == token_type_ende) return -2; //Fehler "Hier muss ein Zeichen stehen"
     //else return -3; //Fehler "Zeichen nicht erlaubt"
 }
@@ -491,7 +491,7 @@ void print_error_message (int errorcode, int position) {
         case -1: printf("Fehler an Position %d: Abschliessende Klammer ')' erwartet\n\n", position); break;
         case -2: printf("Fehler an Position %d: Hier muss ein Zeichen stehen \n\n", position); break;
         case -3: printf("Fehler an Position %d: Zeichen hier nicht erlaubt\n\n", position); break;
-        case -4: printf("Fehler an Position %d: Zahl oder oeffnende Klammer '(' erwartet\n\n", position); break;
+        case -4: printf("Fehler an Position %d: Zahl oder Ã¶ffnende Klammer '(' erwartet\n\n", position); break;
         default: printf("Fehler an Position %d: \n\n", position); break;
     }
 }
